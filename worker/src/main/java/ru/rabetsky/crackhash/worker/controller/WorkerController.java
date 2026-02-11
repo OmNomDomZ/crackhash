@@ -22,7 +22,8 @@ public class WorkerController {
     public ResponseEntity<Void> processTask(
             @RequestBody CrackHashManagerRequest request) {
 
-        log.info("processing request {}", request);
+        log.info("POST /internal/api/worker/hash/crack/task \n requestId={}",
+                request.getRequestId());
         crackHashService.processTask(request);
         return ResponseEntity.ok().build();
     }

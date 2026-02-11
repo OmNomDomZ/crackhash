@@ -1,6 +1,7 @@
 package ru.rabetsky.crackhash.worker.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.paukov.combinatorics3.Generator;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CrackHashService {
@@ -20,6 +22,10 @@ public class CrackHashService {
 
     @Async
     public void processTask(CrackHashManagerRequest request) {
+        log.info("Starting task: requestId={}, part {}/{}, hash={}, maxLength={}",
+                request.getRequestId(), request.getPartNumber(), request.getPartCount(),
+                request.getHash(), request.getMaxLength());
+
         String hash = request.getHash();
         List<String> alphabet = request.getAlphabet().getSymbols();
         int maxLength = request.getMaxLength();
@@ -77,6 +83,10 @@ public class CrackHashService {
         CrackHashWorkerResponse.Answers answers = new CrackHashWorkerResponse.Answers();
         answers.getWords().addAll(found);
         response.setAnswers(answers);
+
+        log.info("Task finished: requestId={}, part {}/{}, found {} words: {}",
+                request.getRequestId(), request.getPartNumber(), request.getPartCount(),
+                found.size(), found);
 
         managerClient.sendResponseToManager(response);
     }

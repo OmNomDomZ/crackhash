@@ -1,50 +1,30 @@
 package ru.rabetsky.crackhash.manager.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.rabetsky.crackhash.manager.model.CrackHashRequest;
-import ru.rabetsky.crackhash.manager.model.CrackHashResponse;
-import ru.rabetsky.crackhash.model.CrackHashManagerRequest;
+import ru.rabetsky.crackhash.manager.model.CrackHashInfo;
+import ru.rabetsky.crackhash.model.CrackHashWorkerResponse;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ManagerService {
 
-    private final WorkerClient workerClient;
     private final CrackHashStorage crackHashStorage;
 
-    private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+    public void handleWorkerResponse(CrackHashWorkerResponse response) {
+        log.info("Received worker response: requestId={}, partNumber={}, words={}",
+                response.getRequestId(), response.getPartNumber(),
+                response.getAnswers() != null ? response.getAnswers().getWords() : "[]");
 
-    @Value("${worker.count}")
-    private int workerCount;
+        CrackHashInfo crackHashInfo = crackHashStorage.get(UUID.fromString(response.getRequestId()));
+        crackHashInfo.workerFinished(response.getAnswers());
 
-    public CrackHashResponse handleRequest(CrackHashRequest crackHashRequest) {
-        UUID requestId = UUID.randomUUID();
-
-        List<String> alphabetList = Arrays.asList(ALPHABET.split(""));
-        CrackHashManagerRequest.Alphabet alphabetObject = new CrackHashManagerRequest.Alphabet();
-        alphabetObject.getSymbols().addAll(alphabetList);
-
-//        crackHashStorage.add();
-
-        for (int partNumber = 0; partNumber < workerCount; partNumber++) {
-
-            CrackHashManagerRequest request = new CrackHashManagerRequest();
-            request.setRequestId(requestId.toString());
-            request.setHash(crackHashRequest.getHash());
-            request.setMaxLength(crackHashRequest.getMaxLength());
-            request.setPartNumber(partNumber);
-            request.setPartCount(workerCount);
-            request.setAlphabet(alphabetObject);
-
-            workerClient.sendTaskToWorker(request);
-        }
-
-        return new CrackHashResponse(requestId);
+        log.info("Request {} progress: {}/{} workers done, status={}",
+                response.getRequestId(), crackHashInfo.getCompletedWorkerCount(),
+                crackHashInfo.getTotalWorkerCount(), crackHashInfo.getStatus());
     }
 }

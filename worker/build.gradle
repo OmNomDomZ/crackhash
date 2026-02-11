@@ -36,6 +36,8 @@ dependencies {
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
+	implementation 'org.apache.httpcomponents.client5:httpclient5'
+
 	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
 	implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.2'
 	implementation 'com.github.dpaukov:combinatoricslib3:3.4.0'
