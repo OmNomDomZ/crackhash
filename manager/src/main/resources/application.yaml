@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: manager
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+worker:
+  urls:
+    - http://localhost:8081}
+  count: ${WORKER_COUNT:1}

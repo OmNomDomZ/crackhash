@@ -1,0 +1,91 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+configurations {
+	jaxb
+}
+
+
+group = 'ru.rabetsky.crackhash'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	jaxb
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
+	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
+	implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.2'
+
+	jaxb 'org.glassfish.jaxb:jaxb-xjc:3.0.2'
+	jaxb 'org.glassfish.jaxb:jaxb-runtime:3.0.2'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.register('generateJaxb') {
+	ext.sourcesDir = "${buildDir}/generated-sources/jaxb"
+	ext.schemaDir = "${projectDir}/src/main/resources/xsd"
+
+	inputs.dir schemaDir
+	outputs.dir sourcesDir
+
+	doLast {
+		project.ant {
+			taskdef name: "xjc", classname: "com.sun.tools.xjc.XJCTask",
+					classpath: configurations.jaxb.asPath
+			mkdir(dir: sourcesDir)
+
+			xjc(destdir: sourcesDir,
+					package: "ru.rabetsky.crackhash.model") {
+				schema(dir: schemaDir, includes: "**/*.xsd")
+				arg(value: "-extension")
+			}
+		}
+	}
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/main/java', "${buildDir}/generated-sources/jaxb"]
+		}
+	}
+}
+
+compileJava.dependsOn generateJaxb
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+bootRun {
+	args = []
+}
