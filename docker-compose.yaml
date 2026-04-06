@@ -1,0 +1,30 @@
+services:
+  manager:
+    build: ./manager
+    ports:
+      - "9080:9080"
+    environment:
+      WORKER_URLS_0: http://worker-1:9081
+      WORKER_URLS_1: http://worker-2:9081
+      WORKER_COUNT: 2
+      SERVER_PORT: 9080
+      MANAGER_TIMEOUT: 5
+    depends_on:
+      - worker-1
+      - worker-2
+
+  worker-1:
+    build: ./worker
+    ports:
+      - "9081:9081"
+    environment:
+      MANAGER_URL: http://manager:9080
+      SERVER_PORT: 9081
+
+  worker-2:
+    build: ./worker
+    ports:
+      - "9082:9081"
+    environment:
+      MANAGER_URL: http://manager:9080
+      SERVER_PORT: 9081

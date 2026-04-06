@@ -62,8 +62,8 @@ public class CrackHashService {
             long skip = Math.max(0, start - globalIdx);
             long take = Math.min(count - skip, end - globalIdx - skip);
 
-            Generator.combination(alphabet.toArray(new String[0]))
-                    .multi(len)
+            Generator.permutation(alphabet.toArray(new String[0]))
+                    .withRepetitions(len)
                     .stream()
                     .skip(skip)
                     .limit(take)
@@ -92,24 +92,7 @@ public class CrackHashService {
     }
 
     private long getCountCombinationsWithRep(int n, int k) {
-        return binomial(n + k - 1, k);
-    }
-
-    private long binomial(int n, int k) {
-        if (k > n) {
-            return 0;
-        }
-        if (k == 0 || k == n) {
-            return 1;
-        }
-        if (k > n - k) {
-            k = n - k;
-        }
-        long result = 1;
-        for (int i = 0; i < k; i++) {
-            result = result * (n - i) / (i + 1);
-        }
-        return result;
+        return (long) Math.pow(n, k);
     }
 
     private String md5Hash(String input) {
@@ -124,5 +107,9 @@ public class CrackHashService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String getMd5Hash(String input) {
+        return md5Hash(input);
     }
 }
